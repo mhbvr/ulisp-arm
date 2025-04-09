@@ -23,7 +23,7 @@ const char LispLibrary[] = "";
 #define assemblerlist
 #define lineeditor
 // #define vt100
-#define extensions
+// #define extensions
 
 #define i2ckbd
 
@@ -5446,10 +5446,19 @@ object *sp_error (object *args, object *env) {
 object *fn_directory (object *args, object *env) {
   (void) args, (void) env;
   #if defined(sdcardsupport)
-  SDBegin();
+  object *result = cons(NULL, NULL);
+  #if defined(CPI_PICOCALC)
+    if(!SD.begin(SDCARD_SS_PIN,(uint32_t) SPI_HALF_SPEED, SPI)){
+      //if(!SD.begin(SDCARD_SS_PIN,tft.getSPIinstance())){
+      error2(PSTR("problem init SD card"));
+      return cdr(result);
+    }
+  #else
+    SDBegin();
+  #endif
+  
   File root = SD.open("/");
   if (!root) error2("problem reading from SD card");
-  object *result = cons(NULL, NULL);
   object *ptr = result;
   while (true) {
     File entry = root.openNextFile();
